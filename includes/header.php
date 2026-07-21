@@ -36,6 +36,7 @@ $flash = flash_get();
       <?php if (is_admin()): ?>
       <a href="users.php" class="nav-link <?= $activePage === 'users' ? 'active' : '' ?>">ユーザー管理</a>
       <a href="company_settings.php" class="nav-link <?= $activePage === 'company_settings' ? 'active' : '' ?>">自社情報設定</a>
+      <a href="system_update.php" class="nav-link <?= $activePage === 'system_update' ? 'active' : '' ?>">システム更新</a>
       <a href="migrate.php" class="nav-link <?= $activePage === 'migrate' ? 'active' : '' ?>" style="font-size:11px; opacity:0.75;">DBスキーマ更新</a>
       <?php endif; ?>
     </nav>
