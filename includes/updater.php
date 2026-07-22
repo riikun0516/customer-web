@@ -39,7 +39,7 @@ function gh_update_missing_requirements() {
 function gh_api_get($path) {
     $url = 'https://api.github.com' . $path;
     $headers = [
-        'User-Agent: customer-management-tool-updater',
+        'User-Agent: cobis-updater',
         'Accept: application/vnd.github+json',
     ];
     if (defined('GH_UPDATE_TOKEN') && GH_UPDATE_TOKEN) {
@@ -179,7 +179,7 @@ function gh_download_zip($owner, $repo, $ref, $destPath) {
     $fp = fopen($destPath, 'wb');
     if (!$fp) throw new Exception('一時ファイルを作成できませんでした: ' . $destPath);
 
-    $headers = ['User-Agent: customer-management-tool-updater'];
+    $headers = ['User-Agent: cobis-updater'];
     if (defined('GH_UPDATE_TOKEN') && GH_UPDATE_TOKEN) {
         $headers[] = 'Authorization: Bearer ' . GH_UPDATE_TOKEN;
     }

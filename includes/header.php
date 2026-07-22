@@ -20,17 +20,18 @@ $flash = flash_get();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= isset($pageTitle) ? e($pageTitle) . ' - ' : '' ?>顧客管理ツール</title>
+<title><?= isset($pageTitle) ? e($pageTitle) . ' - ' : '' ?>COBIS</title>
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 <div class="app-shell">
   <div class="sidebar">
-    <div class="brand">顧客管理ツール</div>
+    <div class="brand">COBIS<span class="brand-sub">Connect Of Business System</span></div>
     <nav>
       <a href="cases.php" class="nav-link <?= $activePage === 'cases' ? 'active' : '' ?>">案件一覧</a>
       <a href="customers.php" class="nav-link <?= $activePage === 'customers' ? 'active' : '' ?>">顧客一覧</a>
       <a href="quotes.php" class="nav-link <?= $activePage === 'quotes' ? 'active' : '' ?>">見積書</a>
+      <a href="contracts.php" class="nav-link <?= $activePage === 'contracts' ? 'active' : '' ?>">契約書</a>
       <a href="invoices.php" class="nav-link <?= $activePage === 'invoices' ? 'active' : '' ?>">請求書</a>
       <a href="receipts.php" class="nav-link <?= $activePage === 'receipts' ? 'active' : '' ?>">領収書</a>
       <?php if (is_admin()): ?>

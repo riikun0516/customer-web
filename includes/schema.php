@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS company_settings (
     account_holder VARCHAR(100) DEFAULT '',
     default_tax_rate DECIMAL(5,2) NOT NULL DEFAULT 10.00,
     invoice_note TEXT,
+    contract_template TEXT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT chk_company_settings_single_row CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -179,6 +180,29 @@ CREATE TABLE IF NOT EXISTS quote_items (
     FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 SQL
+    ,
+<<<SQL
+CREATE TABLE IF NOT EXISTS contracts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    contract_number VARCHAR(30) UNIQUE,
+    customer_id INT NOT NULL,
+    case_id INT NULL,
+    title VARCHAR(150) NOT NULL,
+    status ENUM('下書き','締結済み','終了') NOT NULL DEFAULT '下書き',
+    start_date DATE NULL,
+    end_date DATE NULL,
+    amount DECIMAL(12,2) NULL,
+    payment_terms VARCHAR(255) DEFAULT '',
+    body TEXT,
+    notes TEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+SQL
   ];
 }
 
@@ -191,6 +215,7 @@ function migration_statements() {
   return [
     "ALTER TABLE cases ADD COLUMN amount DECIMAL(12,2) NULL AFTER assigned_user_id",
     "ALTER TABLE company_settings ADD COLUMN logo_path VARCHAR(255) DEFAULT NULL AFTER company_name",
+    "ALTER TABLE company_settings ADD COLUMN contract_template TEXT AFTER invoice_note",
   ];
 }
 

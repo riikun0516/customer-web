@@ -40,13 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ログイン - 顧客管理ツール</title>
+<title>ログイン - COBIS</title>
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 <div class="center-screen">
   <div class="card narrow">
-    <h1 class="title">顧客管理ツール</h1>
+    <h1 class="title" style="font-size:26px; letter-spacing:0.5px;">COBIS</h1>
+    <p style="font-size:11px; color:var(--text-sub); letter-spacing:0.5px; margin:0 0 18px;">Connect Of Business System</p>
     <p class="subtitle">アカウント情報でログインしてください</p>
 
     <?php if ($error): ?>

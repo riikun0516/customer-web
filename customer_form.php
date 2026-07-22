@@ -149,8 +149,9 @@ if ($isEdit) {
   </div>
 
   <div class="form-card">
-    <h3 style="margin-top:0; font-size:14px;">見積書・請求書・領収書</h3>
+    <h3 style="margin-top:0; font-size:14px;">見積書・契約書・請求書・領収書</h3>
     <a href="quote_form.php?customer_id=<?= (int)$customerId ?>" class="btn secondary small full" style="margin-bottom:8px;">＋ 見積書を作成</a>
+    <a href="contract_form.php?customer_id=<?= (int)$customerId ?>" class="btn secondary small full" style="margin-bottom:8px;">＋ 契約書を作成</a>
     <a href="invoice_form.php?customer_id=<?= (int)$customerId ?>" class="btn secondary small full" style="margin-bottom:8px;">＋ 請求書を発行</a>
     <a href="receipt_form.php?customer_id=<?= (int)$customerId ?>" class="btn secondary small full">＋ 領収書を発行</a>
   </div>

@@ -36,7 +36,8 @@ function get_company_settings($pdo) {
         return [
             'company_name' => '', 'logo_path' => null, 'postal_code' => '', 'address' => '', 'tel' => '', 'email' => '',
             'registration_number' => '', 'bank_name' => '', 'branch_name' => '', 'account_type' => '普通',
-            'account_number' => '', 'account_holder' => '', 'default_tax_rate' => 10.00, 'invoice_note' => ''
+            'account_number' => '', 'account_holder' => '', 'default_tax_rate' => 10.00, 'invoice_note' => '',
+            'contract_template' => ''
         ];
     }
     return $row;

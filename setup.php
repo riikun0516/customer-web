@@ -127,12 +127,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>初期セットアップ - 顧客管理ツール</title>
+<title>初期セットアップ - COBIS</title>
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 <div class="center-screen">
   <div class="card wide">
+    <p style="font-size:11px; color:var(--text-sub); letter-spacing:0.5px; margin:0 0 4px; font-weight:700;">COBIS</p>
     <h1 class="title">初期セットアップ</h1>
     <p class="subtitle">利用開始前にデータベース接続と管理者アカウントを設定します</p>
 

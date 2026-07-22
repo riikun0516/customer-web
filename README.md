@@ -1,6 +1,6 @@
-# 顧客管理ツール - Web本体（PHP + MySQL）
+# COBIS（Connect Of Business System） - Web本体（PHP + MySQL）
 
-顧客・案件・見積書・請求書・領収書をまとめて管理する社内向け顧客管理ツールのWeb本体です。PHP + MySQLで動作し、共用レンタルサーバー（さくらインターネット、Xserverなど）でもComposer不要でそのまま利用できます。
+顧客・案件・見積書・契約書・請求書・領収書をまとめて管理するビジネス管理ツール「COBIS」のWeb本体です。PHP + MySQLで動作し、共用レンタルサーバー（さくらインターネット、Xserverなど）でもComposer不要でそのまま利用できます。
 
 デスクトップから使うためのランチャー（Electron版）は別リポジトリです。
 👉 https://github.com/riikun0516/customer.git
@@ -9,8 +9,9 @@
 
 - **案件管理**: 誰がどの案件を担当しているか、ステータス（未着手/進行中/保留/完了）、金額、期限を一覧表示。進捗メモを時系列で記録
 - **顧客管理**: 顧客情報の登録・編集、紐づく案件の確認
-- **見積書 / 請求書 / 領収書のPDF発行**:
-  - 案件に設定した金額が明細の初期値として自動反映され、工賃や交通費などをその場で追加可能
+- **見積書 / 契約書 / 請求書 / 領収書のPDF発行**:
+  - 案件に設定した金額が明細・金額欄の初期値として自動反映され、工賃や交通費などをその場で追加可能
+  - 契約書は顧客（甲）・自社（乙）の当事者情報を自動反映し、条項本文は自社情報設定のテンプレートから引き継ぎ可能。署名・捺印欄付き
   - 請求書には自社情報設定で登録した振込先（銀行口座）を印字
   - 会社ロゴをアップロードしておくと、PDF上部に自動で印字
   - 消費税の自動計算、書類番号の自動採番（`INV-2026-0001` 形式）
@@ -64,6 +65,7 @@
 ├── cases.php / case_form.php           案件一覧・編集
 ├── customers.php / customer_form.php   顧客一覧・編集
 ├── quotes.php / quote_form.php / quote_pdf.php       見積書
+├── contracts.php / contract_form.php / contract_pdf.php 契約書
 ├── invoices.php / invoice_form.php / invoice_pdf.php 請求書
 ├── receipts.php / receipt_form.php / receipt_pdf.php 領収書
 ├── users.php / user_form.php           ユーザー管理（管理者専用）

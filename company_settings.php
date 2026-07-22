@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'account_holder' => trim($_POST['account_holder'] ?? ''),
         'default_tax_rate' => (float)($_POST['default_tax_rate'] ?? 10),
         'invoice_note' => trim($_POST['invoice_note'] ?? ''),
+        'contract_template' => $_POST['contract_template'] ?? '',
     ];
 
     // ロゴ削除チェックボックス
@@ -80,15 +81,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($exists) {
             $stmt = $pdo->prepare(
                 'UPDATE company_settings SET company_name=?, logo_path=?, postal_code=?, address=?, tel=?, email=?, registration_number=?,
-                 bank_name=?, branch_name=?, account_type=?, account_number=?, account_holder=?, default_tax_rate=?, invoice_note=?
+                 bank_name=?, branch_name=?, account_type=?, account_number=?, account_holder=?, default_tax_rate=?, invoice_note=?, contract_template=?
                  WHERE id=1'
             );
             $stmt->execute(array_values($settings));
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO company_settings (id, company_name, logo_path, postal_code, address, tel, email, registration_number,
-                 bank_name, branch_name, account_type, account_number, account_holder, default_tax_rate, invoice_note)
-                 VALUES (1,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+                 bank_name, branch_name, account_type, account_number, account_holder, default_tax_rate, invoice_note, contract_template)
+                 VALUES (1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
             );
             $stmt->execute(array_values($settings));
             $exists = true;
@@ -192,6 +193,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="field">
       <label>請求書の備考欄（デフォルト文言）</label>
       <textarea name="invoice_note" rows="2" placeholder="お振込手数料はご負担いただきますようお願いいたします。"><?= e($settings['invoice_note']) ?></textarea>
+    </div>
+
+    <h3 style="font-size:14px; margin:24px 0 12px; border-top:1px solid var(--border); padding-top:20px;">契約書の初期設定</h3>
+    <div class="field">
+      <label>契約書テンプレート（デフォルトの条項本文）</label>
+      <textarea name="contract_template" rows="10" style="font-family: 'Hiragino Sans', 'Yu Gothic', monospace; font-size:13px;" placeholder="第1条（目的）&#10;甲は乙に対し、本契約に定める業務を委託し、乙はこれを受託する。&#10;&#10;第2条（契約期間）&#10;…"><?= e($settings['contract_template']) ?></textarea>
+      <div class="hint">新規契約書を作成する際、この内容が条項本文の初期値として入力されます。契約ごとに編集できます。</div>
     </div>
 
     <div class="form-actions">
