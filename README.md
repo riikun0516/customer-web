@@ -1,4 +1,4 @@
-# COBIS（Connect Of Business System） - Web本体（PHP + MySQL）
+# COBIS - Web本体（PHP + MySQL）
 
 顧客・案件・見積書・契約書・請求書・領収書をまとめて管理するビジネス管理ツール「COBIS」のWeb本体です。PHP + MySQLで動作し、共用レンタルサーバー（さくらインターネット、Xserverなど）でもComposer不要でそのまま利用できます。
 

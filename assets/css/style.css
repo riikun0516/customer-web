@@ -109,14 +109,6 @@ button { cursor: pointer; font-family: inherit; }
   border-bottom: 1px solid rgba(255,255,255,0.15);
   margin-bottom: 12px;
 }
-.sidebar .brand .brand-sub {
-  display: block;
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.3px;
-  color: rgba(255,255,255,0.6);
-  margin-top: 3px;
-}
 .sidebar nav a {
   display: block;
   padding: 12px 20px;

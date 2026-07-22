@@ -26,7 +26,7 @@ $flash = flash_get();
 <body>
 <div class="app-shell">
   <div class="sidebar">
-    <div class="brand">COBIS<span class="brand-sub">Connect Of Business System</span></div>
+    <div class="brand">COBIS</div>
     <nav>
       <a href="cases.php" class="nav-link <?= $activePage === 'cases' ? 'active' : '' ?>">案件一覧</a>
       <a href="customers.php" class="nav-link <?= $activePage === 'customers' ? 'active' : '' ?>">顧客一覧</a>

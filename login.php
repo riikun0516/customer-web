@@ -46,8 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <div class="center-screen">
   <div class="card narrow">
-    <h1 class="title" style="font-size:26px; letter-spacing:0.5px;">COBIS</h1>
-    <p style="font-size:11px; color:var(--text-sub); letter-spacing:0.5px; margin:0 0 18px;">Connect Of Business System</p>
+    <h1 class="title" style="font-size:26px; letter-spacing:0.5px; margin-bottom:18px;">COBIS</h1>
     <p class="subtitle">アカウント情報でログインしてください</p>
 
     <?php if ($error): ?>
