@@ -44,9 +44,11 @@ $flash = flash_get();
     <div class="user-box">
       <div class="name"><?= e($me['display_name']) ?></div>
       <div class="role"><?= $me['role'] === 'admin' ? '管理者' : '一般ユーザー' ?></div>
+      <a href="account.php" class="btn secondary small full" style="margin-bottom:6px; box-sizing:border-box;">アカウント設定</a>
       <form method="post" action="logout.php">
         <button type="submit" class="btn secondary small full">ログアウト</button>
       </form>
+      <div style="text-align:center; font-size:10px; color:rgba(255,255,255,0.4); margin-top:10px;">COBIS v<?= e(cobis_version()) ?></div>
     </div>
   </div>
   <div class="main-area">

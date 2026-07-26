@@ -47,3 +47,18 @@ function csrf_verify() {
 function status_badge_class($status) {
     return 'badge status-' . e($status);
 }
+
+/**
+ * このコードベース自体のバージョン番号を返す（web/VERSION ファイルから読み込む）。
+ * GitHub連携の「システム更新」機能とは独立して、手動デプロイの場合でも
+ * 常にアプリ自身が現在のバージョンを表示できるようにするためのもの。
+ * リリースごとに VERSION ファイルの中身を更新してタグを打つ運用を想定。
+ */
+function cobis_version() {
+    static $version = null;
+    if ($version === null) {
+        $path = __DIR__ . '/../VERSION';
+        $version = is_file($path) ? trim(file_get_contents($path)) : '不明';
+    }
+    return $version;
+}

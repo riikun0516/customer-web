@@ -85,6 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $installed = gh_get_installed_version();
 $requirementsMissing = gh_update_missing_requirements();
 $installedTag = $installed['tag_name'] ?? null;
+$currentVersion = cobis_version();
+$hasCurrentVersion = ($currentVersion && $currentVersion !== '不明');
 ?>
 
 <div class="page-header">
@@ -105,14 +107,18 @@ $installedTag = $installed['tag_name'] ?? null;
 
 <div class="form-card" style="max-width:760px; margin-bottom:20px;">
   <h3 style="margin-top:0; font-size:14px;">現在のバージョン</h3>
+  <p style="font-size:13px; margin-bottom:10px;">
+    デプロイされているコード（保有バージョン）: <span class="badge status-完了">v<?= e(cobis_version()) ?></span>
+    <span class="hint">（<code>web/VERSION</code> ファイルの値。最新リリースとの比較・「適用中」判定はこの値を基準に行います）</span>
+  </p>
   <?php if ($installedTag): ?>
     <p style="font-size:13px;">
-      バージョン: <span class="badge status-完了"><?= e($installedTag) ?></span>
+      「システム更新」機能で最後に適用したバージョン: <span class="badge status-完了"><?= e($installedTag) ?></span>
       <?php if (!empty($installed['name']) && $installed['name'] !== $installedTag): ?>（<?= e($installed['name']) ?>）<?php endif; ?><br>
       適用日時: <?= e($installed['updated_at'] ?? '-') ?>
     </p>
   <?php else: ?>
-    <p class="hint">まだアップデートを適用したことがありません（現在のバージョンは記録されていません）。「最新情報を確認」→「アップデートを適用」を一度実行すると、以後バージョンが記録されます。</p>
+    <p class="hint">まだ「システム更新」機能でアップデートを適用したことがありません。「最新情報を確認」→「アップデートを適用」を一度実行すると、以後こちらにも記録されます。</p>
   <?php endif; ?>
 
   <form method="post" style="display:inline-block; margin-right:8px;">
@@ -142,8 +148,8 @@ $installedTag = $installed['tag_name'] ?? null;
         </details>
       <?php endif; ?>
 
-      <?php if ($installedTag && !gh_version_is_newer($latest['tag_name'], $installedTag)): ?>
-        <p style="font-size:13px; color:#2e7d32; margin:0;">✓ 現在のバージョンは最新です</p>
+      <?php if ($hasCurrentVersion && !gh_version_is_newer($latest['tag_name'], $currentVersion)): ?>
+        <p style="font-size:13px; color:#2e7d32; margin:0;">✓ 現在のバージョンは最新です（保有バージョン: v<?= e($currentVersion) ?>）</p>
       <?php else: ?>
         <form method="post" onsubmit="return confirm('バージョン <?= e($latest['tag_name']) ?> を適用します。config.php とアップロード済みロゴ以外のファイルが上書きされます。よろしいですか？');">
           <?= csrf_field() ?>
@@ -167,14 +173,14 @@ $installedTag = $installed['tag_name'] ?? null;
           <tr>
             <td>
               <?= e($r['tag_name']) ?>
-              <?php if ($installedTag === $r['tag_name']): ?><span class="badge status-完了">適用中</span><?php endif; ?>
+              <?php if ($hasCurrentVersion && gh_versions_equal($currentVersion, $r['tag_name'])): ?><span class="badge status-完了">保有バージョン</span><?php endif; ?>
               <?php if ($r['prerelease']): ?><span class="badge inactive">プレリリース</span><?php endif; ?>
             </td>
             <td><?= e($r['name']) ?></td>
             <td><?= e($r['published_at']) ?></td>
             <td>
-              <?php if ($installedTag !== $r['tag_name']): ?>
-              <form method="post" onsubmit="return confirm('バージョン <?= e($r['tag_name']) ?> を適用します（config.php とロゴは保護されます）。よろしいですか？');">
+              <?php if (!($hasCurrentVersion && gh_versions_equal($currentVersion, $r['tag_name']))): ?>
+              <form method="post" onsubmit="return confirm('バージョン <?= e($r['tag_name']) ?> を適用します(config.php とロゴは保護されます)。よろしいですか？');">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="apply_update">
                 <input type="hidden" name="tag" value="<?= e($r['tag_name']) ?>">

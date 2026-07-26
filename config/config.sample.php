@@ -15,3 +15,8 @@ define('DB_PASS', 'db_password');
 // define('GH_UPDATE_REPO', 'customer-web');
 // リポジトリが private の場合、Personal Access Token（repoスコープ）を設定してください
 // define('GH_UPDATE_TOKEN', 'ghp_xxxxxxxxxxxxxxxxxxxx');
+// Windows/IIS環境で "unable to get local issuer certificate" エラーが出る場合、
+// php.ini の curl.cainfo / openssl.cafile を設定するのが本来の対処ですが、
+// それができない場合はここでCA証明書バンドルのパスを直接指定できます。
+// https://curl.se/ca/cacert.pem をダウンロードして配置してください。
+// define('GH_UPDATE_CAINFO', 'C:\\php\\cacert.pem');

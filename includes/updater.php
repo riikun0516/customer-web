@@ -34,6 +34,19 @@ function gh_update_missing_requirements() {
 }
 
 /**
+ * SSL証明書の検証に使うCAバンドルのパスをcurlオプションに反映する。
+ * 環境（特にWindows/IIS）でphp.iniのcurl.cainfo / openssl.cafileが未設定だと
+ * "unable to get local issuer certificate" エラーになるため、
+ * config.php に define('GH_UPDATE_CAINFO', 'C:\\php\\cacert.pem'); のように
+ * 明示指定できる保険を用意している（php.ini側で設定済みなら不要）。
+ */
+function gh_apply_cainfo(&$curlOptions) {
+    if (defined('GH_UPDATE_CAINFO') && GH_UPDATE_CAINFO && is_file(GH_UPDATE_CAINFO)) {
+        $curlOptions[CURLOPT_CAINFO] = GH_UPDATE_CAINFO;
+    }
+}
+
+/**
  * GitHub API に GET リクエストを送る（JSON応答をデコードして返す）
  */
 function gh_api_get($path) {
@@ -45,13 +58,15 @@ function gh_api_get($path) {
     if (defined('GH_UPDATE_TOKEN') && GH_UPDATE_TOKEN) {
         $headers[] = 'Authorization: Bearer ' . GH_UPDATE_TOKEN;
     }
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
+    $options = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => $headers,
         CURLOPT_TIMEOUT => 20,
         CURLOPT_FOLLOWLOCATION => true,
-    ]);
+    ];
+    gh_apply_cainfo($options);
+    $ch = curl_init($url);
+    curl_setopt_array($ch, $options);
     $body = curl_exec($ch);
     if ($body === false) {
         $err = curl_error($ch);
@@ -67,6 +82,7 @@ function gh_api_get($path) {
     }
     return $data;
 }
+
 
 function gh_get_default_branch($owner, $repo) {
     $info = gh_api_get("/repos/$owner/$repo");
@@ -132,6 +148,15 @@ function gh_version_is_newer($latestTag, $installedTag) {
 }
 
 /**
+ * 2つのバージョン文字列（"v1.0.4" と "1.0.4" のような表記ゆれを吸収して）が
+ * 同一バージョンかどうかを判定する
+ */
+function gh_versions_equal($a, $b) {
+    if ($a === null || $b === null || $a === '' || $b === '') return false;
+    return version_compare(gh_normalize_version_string($a), gh_normalize_version_string($b)) === 0;
+}
+
+/**
  * 指定コミットのファイルツリー（再帰）を取得
  * 戻り値: [ 'path/to/file.php' => ['sha' => blob_sha, 'size' => bytes], ... ] （blob = ファイルのみ）
  * $ref はコミットSHAだけでなく、ブランチ名・タグ名も指定可能
@@ -183,13 +208,15 @@ function gh_download_zip($owner, $repo, $ref, $destPath) {
     if (defined('GH_UPDATE_TOKEN') && GH_UPDATE_TOKEN) {
         $headers[] = 'Authorization: Bearer ' . GH_UPDATE_TOKEN;
     }
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
+    $options = [
         CURLOPT_FILE => $fp,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_TIMEOUT => 120,
         CURLOPT_HTTPHEADER => $headers,
-    ]);
+    ];
+    gh_apply_cainfo($options);
+    $ch = curl_init($url);
+    curl_setopt_array($ch, $options);
     $ok = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err = curl_error($ch);
