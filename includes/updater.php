@@ -234,7 +234,7 @@ function gh_download_zip($owner, $repo, $ref, $destPath) {
  * ディレクトリを再帰的にコピーする（$srcにあるファイルを$dstへ上書きコピー。
  * $dstにしか無いファイルは削除しない。保護パスはスキップする）
  */
-function gh_recursive_copy($src, $dst, $baseDstForProtectionCheck) {
+function gh_recursive_copy($src, $dst, $baseDstForProtectionCheck, &$failedFiles = []) {
     $items = scandir($src);
     foreach ($items as $item) {
         if ($item === '.' || $item === '..') continue;
@@ -247,12 +247,21 @@ function gh_recursive_copy($src, $dst, $baseDstForProtectionCheck) {
         }
 
         if (is_dir($srcPath)) {
-            if (!is_dir($dstPath)) @mkdir($dstPath, 0755, true);
-            gh_recursive_copy($srcPath, $dstPath, $baseDstForProtectionCheck);
+            if (!is_dir($dstPath)) {
+                if (!@mkdir($dstPath, 0755, true) && !is_dir($dstPath)) {
+                    $failedFiles[] = $relPath . '（フォルダを作成できませんでした）';
+                    continue;
+                }
+            }
+            gh_recursive_copy($srcPath, $dstPath, $baseDstForProtectionCheck, $failedFiles);
         } else {
-            @copy($srcPath, $dstPath);
+            if (!@copy($srcPath, $dstPath)) {
+                $err = error_get_last();
+                $failedFiles[] = $relPath . '（' . ($err['message'] ?? '書き込みに失敗') . '）';
+            }
         }
     }
+    return $failedFiles;
 }
 
 /**
@@ -317,7 +326,18 @@ function gh_apply_update($owner, $repo, $ref) {
         $sourceRoot = $extractDir . '/' . $entries[0];
 
         $webRoot = realpath(__DIR__ . '/..');
-        gh_recursive_copy($sourceRoot, $webRoot, $webRoot);
+        $failedFiles = [];
+        gh_recursive_copy($sourceRoot, $webRoot, $webRoot, $failedFiles);
+
+        if (!empty($failedFiles)) {
+            $preview = array_slice($failedFiles, 0, 10);
+            $msg = count($failedFiles) . '件のファイルを書き込めませんでした（権限不足やファイルが使用中である可能性があります）:' . "\n"
+                . implode("\n", $preview);
+            if (count($failedFiles) > 10) {
+                $msg .= "\n…ほか " . (count($failedFiles) - 10) . '件';
+            }
+            throw new Exception($msg);
+        }
 
         // スキーマを最新化（新しいテーブル・列があれば追加）
         require_once __DIR__ . '/schema.php';

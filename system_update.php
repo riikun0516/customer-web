@@ -102,7 +102,7 @@ $hasCurrentVersion = ($currentVersion && $currentVersion !== '不明');
   <div class="msg error">この機能を使うには <?= e(implode(' / ', $requirementsMissing)) ?> が必要です。</div>
 <?php endif; ?>
 <?php if ($actionError): ?>
-  <div class="msg error"><?= e($actionError) ?></div>
+  <div class="msg error" style="white-space:pre-wrap;"><?= e($actionError) ?></div>
 <?php endif; ?>
 
 <div class="form-card" style="max-width:760px; margin-bottom:20px;">
