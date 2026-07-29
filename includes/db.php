@@ -4,6 +4,24 @@
  * config/config.php が存在しない場合は初期セットアップへ誘導する
  */
 
+/**
+ * IIS + PHP(FastCGI)環境では、error_log が未設定のままだとPHPの警告・エラーが
+ * 標準エラー出力(stderr)に書き込まれ、ページ自体は正常でもIISが500を返してしまうことがある。
+ * これを避けるため、error_log が明示的に設定されていない場合は自動的にファイルへ固定する。
+ * 副次効果として、COBIS専用のエラーログが web/logs/php_errors.log にまとまるため、
+ * 他のサービスと混在したサーバーログを探す必要がなくなる。
+ */
+if (!ini_get('error_log')) {
+    $cobisLogDir = __DIR__ . '/../logs';
+    if (!is_dir($cobisLogDir)) {
+        @mkdir($cobisLogDir, 0755, true);
+    }
+    if (is_dir($cobisLogDir) && is_writable($cobisLogDir)) {
+        @ini_set('log_errors', '1');
+        @ini_set('error_log', $cobisLogDir . '/php_errors.log');
+    }
+}
+
 $configPath = __DIR__ . '/../config/config.php';
 
 if (!file_exists($configPath)) {
