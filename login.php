@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <p style="text-align:center; margin-top:18px;">
-      <a href="setup.php" style="font-size:12px; color:var(--text-sub);">DB接続設定を変更する</a>
+      <a href="forgot_password.php" style="font-size:12px; color:var(--text-sub);">パスワードをお忘れですか？</a>
     </p>
   </div>
 </div>

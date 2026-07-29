@@ -9,18 +9,28 @@ $me = current_user();
 $profileErrors = [];
 $passwordErrors = [];
 
+// 最新のメールアドレスを取得（セッションには保持していないため）
+$stmt = $pdo->prepare('SELECT email FROM users WHERE id = ?');
+$stmt->execute([$me['id']]);
+$myEmail = $stmt->fetchColumn();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'update_profile') {
         $displayName = trim($_POST['display_name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
         if (!$displayName) {
             $profileErrors[] = '表示名を入力してください';
+            $myEmail = $email;
+        } elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $profileErrors[] = 'メールアドレスの形式が正しくありません';
+            $myEmail = $email;
         } else {
-            $pdo->prepare('UPDATE users SET display_name=? WHERE id=?')->execute([$displayName, $me['id']]);
+            $pdo->prepare('UPDATE users SET display_name=?, email=? WHERE id=?')->execute([$displayName, $email ?: null, $me['id']]);
             $_SESSION['user']['display_name'] = $displayName;
-            flash_set('success', '表示名を更新しました');
+            flash_set('success', 'プロフィールを更新しました');
             redirect('account.php');
         }
     } elseif ($action === 'change_password') {
@@ -71,12 +81,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="text" name="display_name" value="<?= e($me['display_name']) ?>" required>
       </div>
       <div class="field">
+        <label>メールアドレス</label>
+        <input type="email" name="email" value="<?= e($myEmail ?? '') ?>" placeholder="user@example.com">
+        <div class="hint">パスワードをお忘れの場合の再設定メール送信先になります</div>
+      </div>
+      <div class="field">
         <label>権限</label>
         <input type="text" value="<?= $me['role'] === 'admin' ? '管理者' : '一般ユーザー' ?>" readonly>
       </div>
       <div class="form-actions">
         <span class="spacer"></span>
-        <button type="submit" class="btn">表示名を保存</button>
+        <button type="submit" class="btn">プロフィールを保存</button>
       </div>
     </form>
   </div>

@@ -13,8 +13,11 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     display_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) DEFAULT NULL,
     role ENUM('admin','general') NOT NULL DEFAULT 'general',
     is_active TINYINT(1) NOT NULL DEFAULT 1,
+    reset_token_hash VARCHAR(64) DEFAULT NULL,
+    reset_token_expires DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -85,6 +88,13 @@ CREATE TABLE IF NOT EXISTS company_settings (
     default_tax_rate DECIMAL(5,2) NOT NULL DEFAULT 10.00,
     invoice_note TEXT,
     contract_template TEXT,
+    smtp_host VARCHAR(150) DEFAULT '',
+    smtp_port INT DEFAULT 587,
+    smtp_encryption VARCHAR(10) DEFAULT 'tls',
+    smtp_username VARCHAR(150) DEFAULT '',
+    smtp_password VARCHAR(255) DEFAULT '',
+    smtp_from_email VARCHAR(150) DEFAULT '',
+    smtp_from_name VARCHAR(150) DEFAULT '',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT chk_company_settings_single_row CHECK (id = 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -216,6 +226,16 @@ function migration_statements() {
     "ALTER TABLE cases ADD COLUMN amount DECIMAL(12,2) NULL AFTER assigned_user_id",
     "ALTER TABLE company_settings ADD COLUMN logo_path VARCHAR(255) DEFAULT NULL AFTER company_name",
     "ALTER TABLE company_settings ADD COLUMN contract_template TEXT AFTER invoice_note",
+    "ALTER TABLE users ADD COLUMN email VARCHAR(150) DEFAULT NULL AFTER display_name",
+    "ALTER TABLE users ADD COLUMN reset_token_hash VARCHAR(64) DEFAULT NULL AFTER is_active",
+    "ALTER TABLE users ADD COLUMN reset_token_expires DATETIME DEFAULT NULL AFTER reset_token_hash",
+    "ALTER TABLE company_settings ADD COLUMN smtp_host VARCHAR(150) DEFAULT '' AFTER contract_template",
+    "ALTER TABLE company_settings ADD COLUMN smtp_port INT DEFAULT 587 AFTER smtp_host",
+    "ALTER TABLE company_settings ADD COLUMN smtp_encryption VARCHAR(10) DEFAULT 'tls' AFTER smtp_port",
+    "ALTER TABLE company_settings ADD COLUMN smtp_username VARCHAR(150) DEFAULT '' AFTER smtp_encryption",
+    "ALTER TABLE company_settings ADD COLUMN smtp_password VARCHAR(255) DEFAULT '' AFTER smtp_username",
+    "ALTER TABLE company_settings ADD COLUMN smtp_from_email VARCHAR(150) DEFAULT '' AFTER smtp_password",
+    "ALTER TABLE company_settings ADD COLUMN smtp_from_name VARCHAR(150) DEFAULT '' AFTER smtp_from_email",
   ];
 }
 

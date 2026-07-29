@@ -2,11 +2,13 @@
 $activePage = 'company_settings';
 $pageTitle = '自社情報設定';
 require_once __DIR__ . '/includes/pdf_helper.php';
+require_once __DIR__ . '/includes/mailer.php';
 require_once __DIR__ . '/includes/header.php';
 require_admin();
 
 $pdo = get_pdo();
 $errors = [];
+$testMailResult = null;
 
 $settings = get_company_settings($pdo);
 $exists = $pdo->query('SELECT COUNT(*) FROM company_settings WHERE id = 1')->fetchColumn() > 0;
@@ -17,23 +19,52 @@ $allowedLogoTypes = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' =>
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
-    $settings = [
-        'company_name' => trim($_POST['company_name'] ?? ''),
-        'logo_path' => $settings['logo_path'] ?? null,
-        'postal_code' => trim($_POST['postal_code'] ?? ''),
-        'address' => trim($_POST['address'] ?? ''),
-        'tel' => trim($_POST['tel'] ?? ''),
-        'email' => trim($_POST['email'] ?? ''),
-        'registration_number' => trim($_POST['registration_number'] ?? ''),
-        'bank_name' => trim($_POST['bank_name'] ?? ''),
-        'branch_name' => trim($_POST['branch_name'] ?? ''),
-        'account_type' => $_POST['account_type'] ?? '普通',
-        'account_number' => trim($_POST['account_number'] ?? ''),
-        'account_holder' => trim($_POST['account_holder'] ?? ''),
-        'default_tax_rate' => (float)($_POST['default_tax_rate'] ?? 10),
-        'invoice_note' => trim($_POST['invoice_note'] ?? ''),
-        'contract_template' => $_POST['contract_template'] ?? '',
-    ];
+    $action = $_POST['action'] ?? 'save_settings';
+
+    if ($action === 'send_test_mail') {
+        $testTo = trim($_POST['test_email_to'] ?? '');
+        if (!filter_var($testTo, FILTER_VALIDATE_EMAIL)) {
+            $testMailResult = ['ok' => false, 'message' => '送信先メールアドレスの形式が正しくありません'];
+        } else {
+            try {
+                smtp_send_mail(
+                    $testTo,
+                    '',
+                    '【COBIS】テストメール',
+                    "これはCOBISのSMTP設定確認用のテストメールです。\nこのメールが届いていれば、SMTP設定は正しく機能しています。",
+                    $settings
+                );
+                $testMailResult = ['ok' => true, 'message' => $testTo . ' 宛にテストメールを送信しました。届いているか確認してください。'];
+            } catch (Exception $ex) {
+                $testMailResult = ['ok' => false, 'message' => '送信に失敗しました: ' . $ex->getMessage()];
+            }
+        }
+    } elseif ($action === 'save_settings') {
+        $settings = [
+            'company_name' => trim($_POST['company_name'] ?? ''),
+            'logo_path' => $settings['logo_path'] ?? null,
+            'postal_code' => trim($_POST['postal_code'] ?? ''),
+            'address' => trim($_POST['address'] ?? ''),
+            'tel' => trim($_POST['tel'] ?? ''),
+            'email' => trim($_POST['email'] ?? ''),
+            'registration_number' => trim($_POST['registration_number'] ?? ''),
+            'bank_name' => trim($_POST['bank_name'] ?? ''),
+            'branch_name' => trim($_POST['branch_name'] ?? ''),
+            'account_type' => $_POST['account_type'] ?? '普通',
+            'account_number' => trim($_POST['account_number'] ?? ''),
+            'account_holder' => trim($_POST['account_holder'] ?? ''),
+            'default_tax_rate' => (float)($_POST['default_tax_rate'] ?? 10),
+            'invoice_note' => trim($_POST['invoice_note'] ?? ''),
+            'contract_template' => $_POST['contract_template'] ?? '',
+            'smtp_host' => trim($_POST['smtp_host'] ?? ''),
+            'smtp_port' => (int)($_POST['smtp_port'] ?? 587),
+            'smtp_encryption' => $_POST['smtp_encryption'] ?? 'tls',
+            'smtp_username' => trim($_POST['smtp_username'] ?? ''),
+            // パスワードは空欄のまま送信された場合、既存の値を維持する（毎回入力し直す必要をなくすため）
+            'smtp_password' => ($_POST['smtp_password'] ?? '') !== '' ? $_POST['smtp_password'] : ($settings['smtp_password'] ?? ''),
+            'smtp_from_email' => trim($_POST['smtp_from_email'] ?? ''),
+            'smtp_from_name' => trim($_POST['smtp_from_name'] ?? ''),
+        ];
 
     // ロゴ削除チェックボックス
     if (!empty($_POST['remove_logo']) && $settings['logo_path']) {
@@ -81,21 +112,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($exists) {
             $stmt = $pdo->prepare(
                 'UPDATE company_settings SET company_name=?, logo_path=?, postal_code=?, address=?, tel=?, email=?, registration_number=?,
-                 bank_name=?, branch_name=?, account_type=?, account_number=?, account_holder=?, default_tax_rate=?, invoice_note=?, contract_template=?
+                 bank_name=?, branch_name=?, account_type=?, account_number=?, account_holder=?, default_tax_rate=?, invoice_note=?, contract_template=?,
+                 smtp_host=?, smtp_port=?, smtp_encryption=?, smtp_username=?, smtp_password=?, smtp_from_email=?, smtp_from_name=?
                  WHERE id=1'
             );
             $stmt->execute(array_values($settings));
         } else {
             $stmt = $pdo->prepare(
                 'INSERT INTO company_settings (id, company_name, logo_path, postal_code, address, tel, email, registration_number,
-                 bank_name, branch_name, account_type, account_number, account_holder, default_tax_rate, invoice_note, contract_template)
-                 VALUES (1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+                 bank_name, branch_name, account_type, account_number, account_holder, default_tax_rate, invoice_note, contract_template,
+                 smtp_host, smtp_port, smtp_encryption, smtp_username, smtp_password, smtp_from_email, smtp_from_name)
+                 VALUES (1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
             );
             $stmt->execute(array_values($settings));
             $exists = true;
         }
         flash_set('success', '自社情報を保存しました');
         redirect('company_settings.php');
+    }
     }
 }
 ?>
@@ -112,6 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="form-card" style="max-width:720px;">
   <form method="post" enctype="multipart/form-data">
     <?= csrf_field() ?>
+    <input type="hidden" name="action" value="save_settings">
 
     <div class="field">
       <label>会社ロゴ</label>
@@ -202,10 +237,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="hint">新規契約書を作成する際、この内容が条項本文の初期値として入力されます。契約ごとに編集できます。</div>
     </div>
 
+    <h3 style="font-size:14px; margin:24px 0 12px; border-top:1px solid var(--border); padding-top:20px;">メール送信設定（SMTP）</h3>
+    <p class="hint" style="margin-bottom:14px;">ユーザーの「パスワードをお忘れですか？」からのパスワード再設定メール送信に使用します。Gmail等の外部SMTPサーバーの利用を想定しています。</p>
+    <div class="field-row">
+      <div class="field">
+        <label>SMTPホスト</label>
+        <input type="text" name="smtp_host" value="<?= e($settings['smtp_host']) ?>" placeholder="smtp.gmail.com">
+      </div>
+      <div class="field" style="max-width:120px;">
+        <label>ポート</label>
+        <input type="number" name="smtp_port" value="<?= e($settings['smtp_port']) ?>" placeholder="587">
+      </div>
+      <div class="field" style="max-width:140px;">
+        <label>暗号化方式</label>
+        <select name="smtp_encryption">
+          <option value="tls" <?= $settings['smtp_encryption'] === 'tls' ? 'selected' : '' ?>>STARTTLS</option>
+          <option value="ssl" <?= $settings['smtp_encryption'] === 'ssl' ? 'selected' : '' ?>>SSL</option>
+          <option value="none" <?= $settings['smtp_encryption'] === 'none' ? 'selected' : '' ?>>なし</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>SMTPユーザー名</label>
+        <input type="text" name="smtp_username" value="<?= e($settings['smtp_username']) ?>" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>SMTPパスワード <?php if (!empty($settings['smtp_password'])): ?><span class="hint">（変更する場合のみ入力）</span><?php endif; ?></label>
+        <input type="password" name="smtp_password" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>送信元メールアドレス</label>
+        <input type="email" name="smtp_from_email" value="<?= e($settings['smtp_from_email']) ?>" placeholder="noreply@example.com">
+      </div>
+      <div class="field">
+        <label>送信元表示名</label>
+        <input type="text" name="smtp_from_name" value="<?= e($settings['smtp_from_name']) ?>" placeholder="COBIS">
+      </div>
+    </div>
+
     <div class="form-actions">
       <span class="spacer"></span>
       <button type="submit" class="btn">保存</button>
     </div>
+  </form>
+
+  <?php if ($testMailResult): ?>
+    <div class="msg <?= $testMailResult['ok'] ? 'success' : 'error' ?>" style="margin-top:20px;"><?= e($testMailResult['message']) ?></div>
+  <?php endif; ?>
+
+  <form method="post" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border); display:flex; gap:8px; align-items:flex-end;">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="send_test_mail">
+    <div class="field" style="flex:1; margin-bottom:0;">
+      <label>テストメール送信先</label>
+      <input type="email" name="test_email_to" placeholder="test@example.com" required>
+    </div>
+    <button type="submit" class="btn secondary">テストメールを送信</button>
   </form>
 </div>
 

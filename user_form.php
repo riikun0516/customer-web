@@ -10,7 +10,7 @@ $userId = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_
 $isEdit = $userId > 0;
 $errors = [];
 
-$user = ['username' => '', 'display_name' => '', 'role' => 'general', 'is_active' => 1];
+$user = ['username' => '', 'display_name' => '', 'email' => '', 'role' => 'general', 'is_active' => 1];
 
 if ($isEdit) {
     $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
@@ -40,14 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'save') {
         $username = trim($_POST['username'] ?? '');
         $displayName = trim($_POST['display_name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
         $role = $_POST['role'] ?? 'general';
         $isActive = isset($_POST['is_active']) ? 1 : 0;
         $password = (string)($_POST['password'] ?? '');
 
-        $user = ['username' => $username, 'display_name' => $displayName, 'role' => $role, 'is_active' => $isActive];
+        $user = ['username' => $username, 'display_name' => $displayName, 'email' => $email, 'role' => $role, 'is_active' => $isActive];
 
         if (!$username || !$displayName) {
             $errors[] = 'ユーザー名と表示名は必須です';
+        } elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'メールアドレスの形式が正しくありません';
         } elseif (!$isEdit && !$password) {
             $errors[] = '新規作成時はパスワードが必須です';
         } else {
@@ -55,18 +58,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($isEdit) {
                     if ($password) {
                         $hash = password_hash($password, PASSWORD_DEFAULT);
-                        $stmt = $pdo->prepare('UPDATE users SET display_name=?, role=?, is_active=?, password_hash=? WHERE id=?');
-                        $stmt->execute([$displayName, $role, $isActive, $hash, $userId]);
+                        $stmt = $pdo->prepare('UPDATE users SET display_name=?, email=?, role=?, is_active=?, password_hash=? WHERE id=?');
+                        $stmt->execute([$displayName, $email ?: null, $role, $isActive, $hash, $userId]);
                     } else {
-                        $stmt = $pdo->prepare('UPDATE users SET display_name=?, role=?, is_active=? WHERE id=?');
-                        $stmt->execute([$displayName, $role, $isActive, $userId]);
+                        $stmt = $pdo->prepare('UPDATE users SET display_name=?, email=?, role=?, is_active=? WHERE id=?');
+                        $stmt->execute([$displayName, $email ?: null, $role, $isActive, $userId]);
                     }
                     flash_set('success', 'ユーザー情報を更新しました');
                     redirect('user_form.php?id=' . $userId);
                 } else {
                     $hash = password_hash($password, PASSWORD_DEFAULT);
-                    $stmt = $pdo->prepare('INSERT INTO users (username, password_hash, display_name, role, is_active) VALUES (?,?,?,?,?)');
-                    $stmt->execute([$username, $hash, $displayName, $role, $isActive]);
+                    $stmt = $pdo->prepare('INSERT INTO users (username, password_hash, display_name, email, role, is_active) VALUES (?,?,?,?,?,?)');
+                    $stmt->execute([$username, $hash, $displayName, $email ?: null, $role, $isActive]);
                     $newId = $pdo->lastInsertId();
                     flash_set('success', 'ユーザーを作成しました');
                     redirect('user_form.php?id=' . $newId);
@@ -108,6 +111,11 @@ $pageTitle = $isEdit ? 'ユーザー編集' : '新規ユーザー';
     <div class="field">
       <label>表示名 *</label>
       <input type="text" name="display_name" value="<?= e($user['display_name']) ?>" required>
+    </div>
+    <div class="field">
+      <label>メールアドレス</label>
+      <input type="email" name="email" value="<?= e($user['email'] ?? '') ?>" placeholder="user@example.com">
+      <div class="hint">パスワード再設定（パスワードをお忘れの場合）のメール送信先として使われます</div>
     </div>
     <div class="field">
       <label>パスワード <?php if ($isEdit): ?><span class="hint">（変更する場合のみ入力）</span><?php endif; ?></label>
