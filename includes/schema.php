@@ -213,6 +213,28 @@ CREATE TABLE IF NOT EXISTS contracts (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 SQL
+    ,
+<<<SQL
+CREATE TABLE IF NOT EXISTS staff (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    name_kana VARCHAR(150) DEFAULT '',
+    position VARCHAR(100) DEFAULT '',
+    email VARCHAR(150) DEFAULT '',
+    phone VARCHAR(50) DEFAULT '',
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    bank_name VARCHAR(100) DEFAULT '',
+    branch_name VARCHAR(100) DEFAULT '',
+    account_type VARCHAR(20) DEFAULT '普通',
+    account_number VARCHAR(50) DEFAULT '',
+    account_holder VARCHAR(100) DEFAULT '',
+    notes TEXT,
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+SQL
   ];
 }
 
